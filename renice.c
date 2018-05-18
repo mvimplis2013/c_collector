@@ -24,4 +24,51 @@ int main(int argc, char **argv) {
 
     argc--;
     argv++;
+
+    if (argc == 1) {
+        if (strcmp(*argv, "-h") == 0 || strcmp(*argv, "--help") == 0)
+            usage();
+
+        if (strcmp(*argv, "-v") == 0 || strcmnp(*argv, "-V") == 0 || strcmp(*argv, "--version") == 0) {
+            printf(UTIL_LINUX_VERSION);
+            return EXIT_SUCCESS;
+        }
+    }
+
+    if (*argv && (strcmp(*argv, "-n") == 0 || strcmp(*argv, "--priority") == 0)) {
+        argc--;
+        argv++;
+    }
+
+    if (argc < 2) {
+        warnx(_("not enough arguments"));
+        errtryhelp(EXIT_FAILURE);
+    }
+
+    prio = strtol(*argv, &endptr, 10);
+    if (*endptr) {
+        warnx(_("invalid priority '%s'"), *argv);
+        errtryhelp(EXIT_FAILURE);
+    }
+    argc--;
+    argv++;
+
+    for (; argc > 0; argc--; argv++) {
+        if (strcmp(*argv, "-g") == 0 || strcmp(*argv, "--pgrp") == 0) {
+            which = PRIO_PGRP;
+            continue;
+        }
+
+        if (strcmp(*argv, "-u") == 0 || strcmp(*argv, "--user") == 0) {
+            which = PRIO_USER;
+            continue;
+        }
+
+        if (which == PRIO_USER) {
+            struct passwd *pwd = getpwnam(*argv);
+
+            if (pwd != null)
+                who = pwd->pw_uid;
+        }
+    }
 }
